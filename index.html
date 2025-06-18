@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>工厂计件管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            margin: 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #333;
+            font-size: 15px;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin: 10px 0 5px;
+            font-size: 1.8rem;
+        }
+        .header p {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e6ed;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 5px;
+        }
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: 2px solid #e0e6ed;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            color: #5a6268;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            font-size: 0.95rem;
+        }
+        .tab:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+        .tab.active {
+            background: #fff;
+            border-bottom: 2px solid #fff;
+            margin-bottom: -2px;
+            color: #3498db;
+            border-color: #3498db;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .month-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .month-selector button {
+            background: #3498db;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 6px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 100px;
+        }
+        .month-selector button:active {
+            background: #2980b9;
+            transform: translateY(1px);
+        }
+        .month-selector span {
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-align: center;
+            color: #2c3e50;
+            padding: 0 5px;
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px 5px;
+            background: #3498db;
+            color: white;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        .day {
+            height: 100px;
+            border: 1px solid #e0e6ed;
+            border-radius: 6px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: white;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        .day:active {
+            background-color: #f0f8ff;
+            transform: translateY(1px);
+        }
+        .day-number {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: #2c3e50;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        .day-today {
+            border: 2px solid #2ecc71;
+            background-color: #f8fff9;
+        }
+        .day-today .day-number {
+            color: #2ecc71;
+        }
+        .day-past-empty {
+            border: 2px solid #ff6b6b;
+            background-color: #fff5f5;
+        }
+        .day-summary {
+            font-size: 0.75rem;
+            color: #666;
+            line-height: 1.3;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .day-total {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .empty-day {
+            color: #95a5a6;
+            font-style: italic;
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 3px;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .empty-cell {
+            height: 100px;
+            border: 1px solid transparent;
+            background: rgba(236, 240, 241, 0.5);
+            border-radius: 6px;
+        }
+        .process-preview {
+            margin-top: 5px;
+            font-size: 0.7rem;
+            max-height: 40px;
+            overflow: hidden;
+            flex-grow: 1;
+        }
+        .process-preview div {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 1px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 15px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #95a5a6;
+            transition: all 0.3s;
+            padding: 5px;
+        }
+        .close-btn:active {
+            color: #e74c3c;
+        }
+        .process-list {
+            margin-bottom: 15px;
+            max-height: 40vh;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .process-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        .process-item:active {
+            background-color: #f9f9f9;
+        }
+        .process-info {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .process-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+        .process-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+        .process-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .process-actions button {
+            padding: 7px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.85rem;
+        }
+        .delete-btn {
+            background-color: #ff6b6b;
+            color: white;
+        }
+        .delete-btn:active {
+            background-color: #ff5252;
+        }
+        .add-process-form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            align-items: end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-size: 0.85rem;
+            color: #5a6268;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .add-process-form input,
+        .add-process-form select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            width: 100%;
+        }
+        .add-process-form button {
+            padding: 12px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .add-process-form button:active {
+            background-color: #27ae60;
+            transform: translateY(1px);
+        }
+        .process-management {
+            margin-top: 15px;
+        }
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #3498db 0%, #1a5f8e 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            min-width: 280px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            margin: 0 auto;
+        }
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .stat-card .label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .process-template-list {
+            margin-top: 15px;
+        }
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+            gap: 12px;
+        }
+        .template-card {
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .template-card:active {
+            transform: translateY(1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-color: #3498db;
+        }
+        .template-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .template-name {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+        .template-price {
+            background: #e1f0fa;
+            color: #2980b9;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .template-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+            gap: 8px;
+        }
+        .template-actions button {
+            padding: 7px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.85rem;
+        }
+        .add-template-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .add-template-form h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+        .add-template-form .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            align-items: end;
+        }
+        .form-row input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .form-row button {
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .form-row button:active {
+            background-color: #2980b9;
+        }
+        .empty-template {
+            text-align: center;
+            padding: 30px 15px;
+            color: #95a5a6;
+        }
+        .empty-template i {
+            font-size: 36px;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+        .empty-template p {
+            font-size: 0.95rem;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .notification {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 12px 20px;
+            background: #2ecc71;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+            max-width: 90%;
+        }
+        .notification.show {
+            transform: translateX(0);
+        }
+        .notification.error {
+            background: #e74c3c;
+        }
+        .day-salary {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #e74c3c;
+            text-align: right;
+            padding-top: 3px;
+            border-top: 1px dashed #eee;
+            margin-top: 3px;
+        }
+        .today-marker {
+            font-size: 0.7rem;
+            color: #2ecc71;
+            font-weight: normal;
+        }
+        .day-balance {
+            font-size: 0.7rem;
+            color: #27ae60;
+            text-align: right;
+            margin-top: 2px;
+        }
+        .calendar-day-cell {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .past-marker {
+            font-size: 0.6rem;
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+            align-self: flex-start;
+            margin-top: 2px;
+        }
+        .salary-display {
+            position: absolute;
+            bottom: 8px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 0 5px;
+        }
+        .salary-label {
+            font-size: 0.6rem;
+            color: #95a5a6;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+        .salary-amount {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #e74c3c;
+            line-height: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .month-salary-summary {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        /* 优化本月总工资显示 */
+        .month-salary-card {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            min-width: 300px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        .month-salary-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .month-salary-card .label {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .month-salary-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* 新增编辑按钮样式 */
+        .edit-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        .edit-btn:active {
+            background-color: #2980b9;
+        }
+        
+        /* 编辑表单样式 */
+        .template-edit-form {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            display: none;
+        }
+        .template-edit-form .form-group {
+            margin-bottom: 10px;
+        }
+        .template-edit-form .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+        .template-edit-form input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .template-edit-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .save-edit-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .cancel-edit-btn {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        @media (min-width: 768px) {
+            body {
+                padding: 15px;
+                font-size: 16px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .tab {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+            .month-selector button {
+                min-width: 120px;
+            }
+            .day {
+                height: 110px;
+            }
+            .empty-cell {
+                height: 110px;
+            }
+            .template-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+            .add-template-form .form-row {
+                grid-template-columns: 1fr 1fr auto;
+            }
+            .add-process-form {
+                grid-template-columns: 1fr 100px auto;
+            }
+            .salary-label {
+                font-size: 0.65rem;
+            }
+            .salary-amount {
+                font-size: 0.75rem;
+            }
+            /* 大屏幕上增加工资卡片尺寸 */
+            .month-salary-card {
+                padding: 25px 50px;
+            }
+            .month-salary-card .label {
+                font-size: 1.3rem;
+            }
+            .month-salary-card .value {
+                font-size: 2.2rem;
+            }
+        }
+        .price-format {
+            font-family: 'Courier New', monospace;
+            letter-spacing: -0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-industry"></i> 工厂计件管理系统</h1>
+            <p>高效管理生产工序，实时统计工人工资（单价精确到小数点后五位）</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="calendar">
+                <i class="fas fa-calendar-alt"></i> 计件日历
+            </div>
+            <div class="tab" data-tab="management">
+                <i class="fas fa-tasks"></i> 工序管理
+            </div>
+        </div>
+        
+        <div class="tab-content active" id="calendar-tab">
+            <div class="month-selector">
+                <button id="prev-month"><i class="fas fa-chevron-left"></i> 上个月</button>
+                <span id="current-month">2023年11月</span>
+                <button id="next-month">下个月 <i class="fas fa-chevron-right"></i></button>
+            </div>
+            
+            <div class="calendar" id="calendar">
+                <div class="day-header">周日</div>
+                <div class="day-header">周一</div>
+                <div class="day-header">周二</div>
+                <div class="day-header">周三</div>
+                <div class="day-header">周四</div>
+                <div class="day-header">周五</div>
+                <div class="day-header">周六</div>
+                
+                <!-- 日期将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="month-salary-summary">
+                <div class="month-salary-card">
+                    <div class="label">本月总工资</div>
+                    <div class="value" id="month-salary">¥0.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="management-tab">
+            <div class="process-management">
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="label">工序模板数量</div>
+                        <div class="value" id="template-count">0</div>
+                        <div class="label">预定义工序模板</div>
+                    </div>
+                </div>
+                
+                <h2><i class="fas fa-cogs"></i> 工序模板管理</h2>
+                <p>管理常用的工序名称和单价（精确到小数点后五位）</p>
+                
+                <div class="add-template-form">
+                    <h3><i class="fas fa-plus-circle"></i> 添加工序模板</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="template-name">工序名称</label>
+                            <input type="text" id="template-name" placeholder="例如：零件打磨">
+                        </div>
+                        <div class="form-group">
+                            <label for="template-price">单价 (元)</label>
+                            <input type="number" id="template-price" placeholder="例如：0.005" step="0.00001" min="0">
+                        </div>
+                        <button id="add-template"><i class="fas fa-plus"></i> 添加工序模板</button>
+                    </div>
+                </div>
+                
+                <div class="process-template-list">
+                    <h3><i class="fas fa-list"></i> 现有工序模板</h3>
+                    <div class="template-grid" id="process-template-list">
+                        <!-- 工序模板列表将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 日期详情模态框 -->
+    <div class="modal" id="day-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-calendar-day"></i>
+                    <span id="modal-title">2023年11月1日</span>
+                </div>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            
+            <div class="process-list" id="process-list">
+                <!-- 工序列表将通过JavaScript动态生成 -->
+                <div class="empty-day">暂无工序记录</div>
+            </div>
+            
+            <div class="add-process-form">
+                <div class="form-group">
+                    <label for="process-template">选择工序</label>
+                    <select id="process-template">
+                        <option value="">-- 选择工序模板 --</option>
+                        <!-- 模板选项将通过JavaScript动态生成 -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="process-quantity">数量</label>
+                    <input type="number" id="process-quantity" placeholder="数量" min="1" value="1">
+                </div>
+                
+                <button id="add-process">
+                    <i class="fas fa-plus"></i> 添加工序
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-message">操作成功！</span>
+    </div>
+    
+    <script>
+        // 格式化价格函数：精确到小数点后五位，移除不必要的零
+        function formatPrice(price) {
+            // 转换为数字
+            const num = parseFloat(price);
+            if (isNaN(num)) return '0';
+            
+            // 使用toFixed(5)确保五位小数
+            let formatted = num.toFixed(5);
+            
+            // 移除末尾的零
+            formatted = formatted.replace(/(\.\d*?)0+$/, '$1');
+            
+            // 如果小数点后没有数字，则移除小数点
+            if (formatted.endsWith('.')) {
+                formatted = formatted.slice(0, -1);
+            }
+            
+            return formatted;
+        }
+
+        // 数据存储
+        let data = JSON.parse(localStorage.getItem('factoryPieceworkData')) || {};
+        let processTemplates = JSON.parse(localStorage.getItem('processTemplates')) || [
+            { name: "无头泵组装机", price: 0.002 },
+            { name: "无头泵插管机", price: 0.002 },
+            { name: "201三件套", price: 0.00065 },
+            { name: "401三件套", price: 0.00065 },
+            { name: "201加上玻珠", price: 0.0003 },
+            { name: "201组装机连垫片机", price: 0.0022 },
+            { name: "401组装机连垫片机", price: 0.0025 },
+            { name: "401组装机+垫片机", price: 0.003 },
+            { name: "201按头机", price: 0.0015 },
+            { name: "401按头机", price: 0.0018 },
+            { name: "201插管机", price: 0.003 },
+            { name: "201插管机（2个人开）", price: 0.005 },
+            { name: "401插管机", price: 0.0045 },
+            { name: "401插管机（2个人开）", price: 0.005 },
+            { name: "201圈管机", price: 0.004 },
+            { name: "401圈管机", price: 0.0045 },
+            { name: "201半自动按头机", price: 0.007 },
+            { name: "401半自动按头机", price: 0.007 },
+            { name: "401半自动组装机", price: 0.018 },
+            { name: "402外置五件套", price: 0.003 },
+            { name: "402外置组装机连垫片机", price: 0.0025 },
+            { name: "402外置组装机连垫片机（1个人开）", price: 0.003 },
+            { name: "402外置检测机", price: 0.0015 },
+            { name: "402外置按头机", price: 0.0015 },
+            { name: "402外置插管机", price: 0.0045 },
+            { name: "402外置插管机（2个人开）", price: 0.005 },
+            { name: "402外置圈管机", price: 0.0045 },
+            { name: "402外置半自动按头机", price: 0.007 },
+            { name: "402外置半自动组装机", price: 0.018 },
+            { name: "压漱口水盖子", price: 0.018 },
+            { name: "压朝天泵按头", price: 0.02 },
+            { name: "手工插管", price: 0.02 },
+            { name: "手工拔管", price: 0.006 },
+            { name: "全检产品", price: 0.01 }
+        ];
+        
+        let currentDate = new Date();
+        let selectedDate = null;
+        
+        // DOM元素
+        const calendarEl = document.getElementById('calendar');
+        const currentMonthEl = document.getElementById('current-month');
+        const prevMonthBtn = document.getElementById('prev-month');
+        const nextMonthBtn = document.getElementById('next-month');
+        const dayModal = document.getElementById('day-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const modalTitleEl = document.getElementById('modal-title');
+        const processListEl = document.getElementById('process-list');
+        const processTemplateSelect = document.getElementById('process-template');
+        const processQuantityInput = document.getElementById('process-quantity');
+        const addProcessBtn = document.getElementById('add-process');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const templateNameInput = document.getElementById('template-name');
+        const templatePriceInput = document.getElementById('template-price');
+        const addTemplateBtn = document.getElementById('add-template');
+        const processTemplateListEl = document.getElementById('process-template-list');
+        const templateCountEl = document.getElementById('template-count');
+        const monthSalaryEl = document.getElementById('month-salary');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        
+        // 初始化
+        function init() {
+            renderCalendar();
+            renderProcessTemplates();
+            renderTemplateSelect();
+            updateStats();
+            setupEventListeners();
+        }
+        
+        // 渲染日历
+        function renderCalendar() {
+            // 清空日历（保留星期标题）
+            while (calendarEl.children.length > 7) {
+                calendarEl.removeChild(calendarEl.lastChild);
+            }
+            
+            // 设置当前月份显示
+            currentMonthEl.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
+            
+            // 获取当月第一天和最后一天
+            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            
+            // 获取第一天是星期几（0-6，0是周日）
+            const firstDayOfWeek = firstDay.getDay();
+            
+            // 添加空白单元格对齐星期
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'empty-cell';
+                calendarEl.appendChild(emptyCell);
+            }
+            
+            // 获取今天的日期（去掉时间）
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            // 添加当月的天数
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                const dateKey = formatDateKey(date);
+                const isToday = isSameDay(date, new Date());
+                const isPast = date < today;
+                addDayToCalendar(day, dateKey, isToday, isPast);
+            }
+        }
+        
+        // 添加日期到日历
+        function addDayToCalendar(day, dateKey, isToday = false, isPast = false) {
+            const dayEl = document.createElement('div');
+            dayEl.dataset.date = dateKey;
+            
+            // 确定日期格子的类名
+            let className = 'day';
+            if (isToday) {
+                className += ' day-today';
+            } else if (isPast && (!data[dateKey] || data[dateKey].length === 0)) {
+                className += ' day-past-empty';
+            }
+            dayEl.className = className;
+            
+            const dayContent = document.createElement('div');
+            dayContent.className = 'calendar-day-cell';
+            
+            const dayNumberEl = document.createElement('div');
+            dayNumberEl.className = 'day-number';
+            dayNumberEl.innerHTML = `${day} ${isToday ? '<span class="today-marker">(今)</span>' : ''}`;
+            dayContent.appendChild(dayNumberEl);
+            
+            // 计算当天工资总额
+            let total = 0;
+            if (data[dateKey] && data[dateKey].length > 0) {
+                total = data[dateKey].reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
+            }
+            
+            // 添加工序摘要
+            if (data[dateKey] && data[dateKey].length > 0) {
+                const processCount = data[dateKey].length;
+                
+                const summaryEl = document.createElement('div');
+                summaryEl.className = 'day-summary';
+                
+                // 添加工序预览
+                const processPreviewEl = document.createElement('div');
+                processPreviewEl.className = 'process-preview';
+                data[dateKey].slice(0, 3).forEach(item => {
+                    const processEl = document.createElement('div');
+                    processEl.textContent = `${item.name} ×${item.quantity}`;
+                    processPreviewEl.appendChild(processEl);
+                });
+                if (data[dateKey].length > 3) {
+                    const moreEl = document.createElement('div');
+                    moreEl.textContent = `...还有${data[dateKey].length - 3}个`;
+                    processPreviewEl.appendChild(moreEl);
+                }
+                summaryEl.appendChild(processPreviewEl);
+                dayContent.appendChild(summaryEl);
+            } else {
+                // 没有记录时，添加空白区域
+                const emptyEl = document.createElement('div');
+                emptyEl.className = 'empty-day';
+                emptyEl.style.flexGrow = '1';
+                dayContent.appendChild(emptyEl);
+            }
+            
+            // 添加工资显示区域
+            const salaryDisplay = document.createElement('div');
+            salaryDisplay.className = 'salary-display';
+            
+            const salaryLabel = document.createElement('div');
+            salaryLabel.className = 'salary-label';
+            salaryLabel.textContent = '工资';
+            
+            const salaryAmount = document.createElement('div');
+            salaryAmount.className = 'salary-amount price-format';
+            salaryAmount.textContent = `¥${formatPrice(total)}`;
+            
+            salaryDisplay.appendChild(salaryLabel);
+            salaryDisplay.appendChild(salaryAmount);
+            dayContent.appendChild(salaryDisplay);
+            
+            dayEl.appendChild(dayContent);
+            calendarEl.appendChild(dayEl);
+        }
+        
+        // 渲染工序模板列表
+        function renderProcessTemplates() {
+            processTemplateListEl.innerHTML = '';
+            templateCountEl.textContent = processTemplates.length;
+            
+            if (processTemplates.length === 0) {
+                const emptyEl = document.createElement('div');
+                emptyEl.className = 'empty-template';
+                emptyEl.innerHTML = `
+                    <i class="fas fa-inbox"></i>
+                    <p>暂无工序模板，请添加工序模板</p>
+                `;
+                processTemplateListEl.appendChild(emptyEl);
+                return;
+            }
+            
+            processTemplates.forEach((template, index) => {
+                const templateEl = document.createElement('div');
+                templateEl.className = 'template-card';
+                
+                templateEl.innerHTML = `
+                    <div class="template-header">
+                        <div class="template-name">${template.name}</div>
+                        <div class="template-price price-format">¥${formatPrice(template.price)}</div>
+                    </div>
+                    <div class="template-desc">
+                        此工序单价为 <span class="price-format">¥${formatPrice(template.price)}</span>，可用于快速记录计件数据。
+                    </div>
+                    <div class="template-actions">
+                        <button class="edit-btn" data-index="${index}">
+                            <i class="fas fa-edit"></i> 编辑
+                        </button>
+                        <button class="delete-btn" data-index="${index}">
+                            <i class="fas fa-trash-alt"></i> 删除
+                        </button>
+                    </div>
+                    <div class="template-edit-form" id="edit-form-${index}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>工序名称</label>
+                                <input type="text" class="edit-template-name" value="${template.name}" placeholder="工序名称">
+                            </div>
+                            <div class="form-group">
+                                <label>单价 (元)</label>
+                                <input type="number" class="edit-template-price" value="${template.price}" step="0.00001" min="0" placeholder="单价">
+                            </div>
+                        </div>
+                        <div class="template-edit-actions">
+                            <button class="save-edit-btn" data-index="${index}">
+                                <i class="fas fa-save"></i> 保存
+                            </button>
+                            <button class="cancel-edit-btn" data-index="${index}">
+                                <i class="fas fa-times"></i> 取消
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                processTemplateListEl.appendChild(templateEl);
+            });
+            
+            // 添加编辑按钮事件
+            document.querySelectorAll('#process-template-list .edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.closest('.edit-btn').dataset.index);
+                    showEditForm(index);
+                });
+            });
+            
+            // 添加保存编辑按钮事件
+            document.querySelectorAll('#process-template-list .save-edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.closest('.save-edit-btn').dataset.index);
+                    saveEditedTemplate(index);
+                });
+            });
+            
+            // 添加取消编辑按钮事件
+            document.querySelectorAll('#process-template-list .cancel-edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.closest('.cancel-edit-btn').dataset.index);
+                    hideEditForm(index);
+                });
+            });
+            
+            // 添加删除按钮事件
+            document.querySelectorAll('#process-template-list .delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.closest('.delete-btn').dataset.index);
+                    deleteProcessTemplate(index);
+                });
+            });
+        }
+        
+        // 渲染模板选择下拉框
+        function renderTemplateSelect() {
+            processTemplateSelect.innerHTML = '<option value="">-- 选择工序模板 --</option>';
+            
+            processTemplates.forEach((template, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${template.name} (¥${formatPrice(template.price)})`;
+                processTemplateSelect.appendChild(option);
+            });
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            // 更新本月总工资
+            let monthTotal = 0;
+            const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+            
+            Object.keys(data).forEach(key => {
+                if (key.startsWith(monthKey)) {
+                    data[key].forEach(item => {
+                        monthTotal += parseFloat(item.price) * parseInt(item.quantity);
+                    });
+                }
+            });
+            
+            // 本月总工资显示为两位小数
+            monthSalaryEl.textContent = `¥${monthTotal.toFixed(2)}`;
+        }
+        
+        // 显示通知
+        function showNotification(message, isError = false) {
+            notificationMessage.textContent = message;
+            notification.className = isError ? 'notification error show' : 'notification show';
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 设置事件监听
+        function setupEventListeners() {
+            // 标签页切换
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+            
+            // 月份导航
+            prevMonthBtn.addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+                updateStats();
+            });
+            
+            nextMonthBtn.addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar();
+                updateStats();
+            });
+            
+            // 日期点击事件
+            calendarEl.addEventListener('click', (e) => {
+                const dayEl = e.target.closest('.day');
+                if (dayEl) {
+                    selectedDate = dayEl.dataset.date;
+                    openDayModal(selectedDate);
+                }
+            });
+            
+            closeModalBtn.addEventListener('click', closeDayModal);
+            
+            // 添加工序
+            addProcessBtn.addEventListener('click', () => {
+                const templateIndex = processTemplateSelect.value;
+                const quantity = processQuantityInput.value.trim();
+                
+                if (!templateIndex) {
+                    showNotification('请选择工序模板', true);
+                    return;
+                }
+                
+                if (!quantity || parseInt(quantity) <= 0) {
+                    showNotification('请输入有效的数量', true);
+                    return;
+                }
+                
+                const template = processTemplates[templateIndex];
+                addProcessToDate(selectedDate, template.name, parseFloat(template.price), parseInt(quantity));
+                
+                // 重置表单
+                processTemplateSelect.value = '';
+                processQuantityInput.value = '1';
+            });
+            
+            // 添加工序模板
+            addTemplateBtn.addEventListener('click', () => {
+                const name = templateNameInput.value.trim();
+                const price = templatePriceInput.value.trim();
+                
+                if (!name) {
+                    showNotification('请输入工序名称', true);
+                    return;
+                }
+                
+                if (!price || parseFloat(price) <= 0) {
+                    showNotification('请输入有效的单价', true);
+                    return;
+                }
+                
+                addProcessTemplate(name, parseFloat(price));
+                templateNameInput.value = '';
+                templatePriceInput.value = '';
+                templateNameInput.focus();
+            });
+            
+            // 按Enter键添加工序
+            processQuantityInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addProcessBtn.click();
+                }
+            });
+            
+            // 按Enter键添加工序模板
+            templatePriceInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addTemplateBtn.click();
+                }
+            });
+        }
+        
+        // 打开日期模态框
+        function openDayModal(dateKey) {
+            const date = parseDateKey(dateKey);
+            modalTitleEl.textContent = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+            
+            renderProcessList(dateKey);
+            dayModal.style.display = 'flex';
+        }
+        
+        // 关闭日期模态框
+        function closeDayModal() {
+            dayModal.style.display = 'none';
+            renderCalendar(); // 刷新日历以更新摘要
+            updateStats(); // 更新统计数据
+        }
+        
+        // 渲染工序列表
+        function renderProcessList(dateKey) {
+            processListEl.innerHTML = '';
+            
+            if (!data[dateKey] || data[dateKey].length === 0) {
+                const emptyEl = document.createElement('div');
+                emptyEl.className = 'empty-day';
+                emptyEl.textContent = '暂无工序记录';
+                processListEl.appendChild(emptyEl);
+                return;
+            }
+            
+            // 计算总价
+            const total = data[dateKey].reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0);
+            
+            // 添加工序项
+            data[dateKey].forEach((process, index) => {
+                const processEl = document.createElement('div');
+                processEl.className = 'process-item';
+                
+                const itemTotal = parseFloat(process.price) * parseInt(process.quantity);
+                
+                processEl.innerHTML = `
+                    <div class="process-info">
+                        <div class="process-name">${process.name}</div>
+                        <div class="process-details">
+                            <span>单价: <span class="price-format">¥${formatPrice(process.price)}</span></span>
+                            <span>数量: ${process.quantity}</span>
+                            <span>总价: <strong class="price-format">¥${formatPrice(itemTotal)}</strong></span>
+                        </div>
+                    </div>
+                    <div class="process-actions">
+                        <button class="delete-btn" data-index="${index}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                
+                processListEl.appendChild(processEl);
+            });
+            
+            // 添加总计
+            const totalEl = document.createElement('div');
+            totalEl.className = 'process-item';
+            totalEl.style.fontWeight = 'bold';
+            totalEl.style.backgroundColor = '#f0f8ff';
+            totalEl.style.fontSize = '0.95rem';
+            totalEl.innerHTML = `
+                <div class="process-info">
+                    <div class="process-name">当日工资总计</div>
+                </div>
+                <div class="process-actions">
+                    <div style="color: #e74c3c; font-size: 1rem;" class="price-format">¥${formatPrice(total)}</div>
+                </div>
+            `;
+            processListEl.appendChild(totalEl);
+            
+            // 添加删除按钮事件
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.closest('.delete-btn').dataset.index);
+                    deleteProcessFromDate(dateKey, index);
+                });
+            });
+        }
+        
+        // 添加工序到指定日期
+        function addProcessToDate(dateKey, name, price, quantity) {
+            if (!data[dateKey]) {
+                data[dateKey] = [];
+            }
+            
+            data[dateKey].push({
+                name,
+                price,
+                quantity
+            });
+            
+            saveData();
+            renderProcessList(dateKey);
+            showNotification(`已添加工序: ${name} × ${quantity}`);
+        }
+        
+        // 从指定日期删除工序
+        function deleteProcessFromDate(dateKey, index) {
+            if (data[dateKey] && data[dateKey][index]) {
+                const processName = data[dateKey][index].name;
+                data[dateKey].splice(index, 1);
+                
+                // 如果没有工序了，删除该日期的键
+                if (data[dateKey].length === 0) {
+                    delete data[dateKey];
+                }
+                
+                saveData();
+                renderProcessList(dateKey);
+                showNotification(`已删除工序: ${processName}`);
+            }
+        }
+        
+        // 添加工序模板
+        function addProcessTemplate(name, price) {
+            // 检查是否已存在同名模板
+            if (processTemplates.some(t => t.name === name)) {
+                showNotification('已存在相同名称的工序模板', true);
+                return;
+            }
+            
+            processTemplates.push({
+                name,
+                price
+            });
+            
+            saveProcessTemplates();
+            renderProcessTemplates();
+            renderTemplateSelect();
+            showNotification(`已添加工序模板: ${name}`);
+        }
+        
+        // 删除工序模板
+        function deleteProcessTemplate(index) {
+            if (processTemplates[index]) {
+                const templateName = processTemplates[index].name;
+                processTemplates.splice(index, 1);
+                saveProcessTemplates();
+                renderProcessTemplates();
+                renderTemplateSelect();
+                showNotification(`已删除工序模板: ${templateName}`);
+            }
+        }
+        
+        // 显示编辑表单
+        function showEditForm(index) {
+            const form = document.getElementById(`edit-form-${index}`);
+            form.style.display = 'block';
+        }
+        
+        // 隐藏编辑表单
+        function hideEditForm(index) {
+            const form = document.getElementById(`edit-form-${index}`);
+            form.style.display = 'none';
+        }
+        
+        // 保存编辑后的模板
+        function saveEditedTemplate(index) {
+            const form = document.getElementById(`edit-form-${index}`);
+            const nameInput = form.querySelector('.edit-template-name');
+            const priceInput = form.querySelector('.edit-template-price');
+            
+            const newName = nameInput.value.trim();
+            const newPrice = parseFloat(priceInput.value);
+            
+            if (!newName) {
+                showNotification('工序名称不能为空', true);
+                return;
+            }
+            
+            if (isNaN(newPrice)) {
+                showNotification('请输入有效的单价', true);
+                return;
+            }
+            
+            // 检查名称是否重复（排除当前编辑的模板）
+            const duplicate = processTemplates.some((template, i) => 
+                i !== index && template.name === newName
+            );
+            
+            if (duplicate) {
+                showNotification('已存在相同名称的工序模板', true);
+                return;
+            }
+            
+            // 更新模板
+            processTemplates[index].name = newName;
+            processTemplates[index].price = newPrice;
+            
+            // 保存并刷新
+            saveProcessTemplates();
+            renderProcessTemplates();
+            renderTemplateSelect();
+            showNotification('模板已更新');
+        }
+        
+        // 保存数据到localStorage
+        function saveData() {
+            localStorage.setItem('factoryPieceworkData', JSON.stringify(data));
+        }
+        
+        // 保存工序模板到localStorage
+        function saveProcessTemplates() {
+            localStorage.setItem('processTemplates', JSON.stringify(processTemplates));
+        }
+        
+        // 辅助函数：格式化日期键
+        function formatDateKey(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+        
+        // 辅助函数：解析日期键
+        function parseDateKey(dateKey) {
+            const parts = dateKey.split('-');
+            return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        }
+        
+        // 辅助函数：判断是否是同一天
+        function isSameDay(date1, date2) {
+            return date1.getFullYear() === date2.getFullYear() &&
+                   date1.getMonth() === date2.getMonth() &&
+                   date1.getDate() === date2.getDate();
+        }
+        
+        // 初始化
+        init();
+    </script>
+</body>
+</html>
