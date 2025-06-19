@@ -612,7 +612,7 @@
             justify-content: center;
             margin-top: 15px;
         }
-        /* 优化本月总工资显示 */
+        /* 优化本月工资显示 */
         .month-salary-card {
             background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
             color: white;
@@ -742,6 +742,16 @@
             font-family: 'Courier New', monospace;
             letter-spacing: -0.5px;
         }
+        /* 表达式提示 */
+        .expression-hint {
+            font-size: 0.8rem;
+            color: #3498db;
+            margin-top: 4px;
+            text-align: center;
+            padding: 4px;
+            background: #f0f8ff;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -753,7 +763,7 @@
         
         <div class="tabs">
             <div class="tab active" data-tab="calendar">
-                <i class="fas fa-calendar-alt"></i> 视图
+                <i class="fas fa-calendar-alt"></i> 计件日历
             </div>
             <div class="tab" data-tab="management">
                 <i class="fas fa-tasks"></i> 工序管理
@@ -830,7 +840,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">
-                    <i class="fas fa-calendar-day"></i>
+                    <i class="fas fa-calculator"></i>
                     <span id="modal-title">2023年11月1日</span>
                 </div>
                 <button class="close-btn" id="close-modal">&times;</button>
@@ -851,8 +861,9 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="process-quantity">数量</label>
-                    <input type="number" id="process-quantity" placeholder="数量" min="1" value="1">
+                    <label for="process-quantity">数量 <small>(支持表达式如 100+50)</small></label>
+                    <input type="text" id="process-quantity" placeholder="例如：100+50" value="1" inputmode="decimal">
+                    <div class="expression-hint">支持数学表达式：+, -, *, /</div>
                 </div>
                 
                 <button id="add-process">
@@ -1186,7 +1197,7 @@
         
         // 更新统计信息
         function updateStats() {
-            // 更新本月总工资
+            // 更新本月工资
             let monthTotal = 0;
             const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
             
@@ -1198,7 +1209,7 @@
                 }
             });
             
-            // 本月总工资显示为两位小数
+            // 本月工资显示为两位小数
             monthSalaryEl.textContent = `¥${monthTotal.toFixed(2)}`;
         }
         
@@ -1210,6 +1221,31 @@
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
+        }
+        
+        // 计算表达式
+        function calculateExpression(expr) {
+            try {
+                // 移除空格
+                expr = expr.replace(/\s+/g, '');
+                
+                // 检查表达式是否只包含数字和运算符
+                if (!/^[\d+\-*/.()]+$/.test(expr)) {
+                    throw new Error('表达式包含无效字符');
+                }
+                
+                // 使用Function计算表达式
+                const fn = new Function(`return ${expr}`);
+                const result = fn();
+                
+                if (typeof result !== 'number' || isNaN(result)) {
+                    throw new Error('计算结果不是有效数字');
+                }
+                
+                return result;
+            } catch (e) {
+                throw new Error(`无法计算表达式: ${e.message}`);
+            }
         }
         
         // 设置事件监听
@@ -1252,21 +1288,38 @@
             // 添加工序
             addProcessBtn.addEventListener('click', () => {
                 const templateIndex = processTemplateSelect.value;
-                const quantity = processQuantityInput.value.trim();
+                const quantityExpr = processQuantityInput.value.trim();
                 
                 if (!templateIndex) {
                     showNotification('请选择工序模板', true);
                     return;
                 }
                 
-                if (!quantity || parseInt(quantity) <= 0) {
-                    showNotification('请输入有效的数量', true);
+                if (!quantityExpr) {
+                    showNotification('请输入数量表达式', true);
+                    return;
+                }
+                
+                let quantity;
+                try {
+                    // 尝试计算表达式
+                    quantity = calculateExpression(quantityExpr);
+                    
+                    // 确保是数字且大于0
+                    if (isNaN(quantity)) {
+                        throw new Error('结果不是数字');
+                    }
+                    if (quantity <= 0) {
+                        throw new Error('数量必须大于0');
+                    }
+                } catch (e) {
+                    showNotification(e.message, true);
                     return;
                 }
                 
                 const template = processTemplates[templateIndex];
-                addProcessToDate(selectedDate, template.name, parseFloat(template.price), parseInt(quantity));
-                
+                addProcessToDate(selectedDate, template.name, parseFloat(template.price), quantity);
+
                 // 重置表单
                 processTemplateSelect.value = '';
                 processQuantityInput.value = '1';
