@@ -1189,10 +1189,8 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="process-quantity">数量 <small>(支持表达式如 100+50)</small></label>
-                    <input type="text" id="process-quantity" placeholder="例如：100+50" value="1" inputmode="decimal">
-                    <div class="expression-hint">支持数学表达式：+, -, *, /</div>
-                </div>
+                    <label for="process-quantity">数量 <small>(支持直接使用 +、-、*、/  运算)</small></label>
+                    <input type="text" id="process-quantity" placeholder="如：5箱，每箱1000，则可以直接输入5*1000" value="" inputmode="decimal">
                 
                 <button id="add-process">
                     <i class="fas fa-plus"></i> 添加工序
