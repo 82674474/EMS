@@ -1000,6 +1000,29 @@
             font-size: 1.1rem;
         }
         
+        .chart-controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        
+        .chart-type-btn {
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .chart-type-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
         @media (min-width: 768px) {
             body {
                 padding: 15px;
@@ -1153,6 +1176,11 @@
                 <p>展示本月每日工资收入变化趋势</p>
             </div>
             
+            <div class="chart-controls">
+                <button class="chart-type-btn active" data-type="line">折线图</button>
+                <button class="chart-type-btn" data-type="bar">柱状图</button>
+            </div>
+            
             <div class="chart-container">
                 <canvas id="salary-chart"></canvas>
                 <div class="no-data-message" id="no-data-message" style="display: none;">
@@ -1191,6 +1219,7 @@
                 <div class="form-group">
                     <label for="process-quantity">数量 <small>(支持直接使用运算符 +、-、*、/  进行运算)</small></label>
                     <input type="text" id="process-quantity" placeholder="如：5箱，每箱1000，则可以直接输入5*1000" value="" inputmode="decimal">
+                </div>
                 
                 <button id="add-process">
                     <i class="fas fa-plus"></i> 添加工序
@@ -1299,6 +1328,7 @@
         let selectedDate = null;
         let yearMonthPickerYear = currentDate.getFullYear();
         let salaryChart = null;
+        let chartType = 'line'; // 默认图表类型
         
         // DOM元素
         const calendarEl = document.getElementById('calendar');
@@ -1330,6 +1360,7 @@
         const monthGrid = document.getElementById('month-grid');
         const salaryChartCanvas = document.getElementById('salary-chart');
         const noDataMessage = document.getElementById('no-data-message');
+        const chartTypeBtns = document.querySelectorAll('.chart-type-btn');
         
         // 初始化
         function init() {
@@ -1625,21 +1656,21 @@
             // 创建图表
             const ctx = salaryChartCanvas.getContext('2d');
             salaryChart = new Chart(ctx, {
-                type: 'line',
+                type: chartType,
                 data: {
                     labels: labels,
                     datasets: [{
                         label: '日工资 (元)',
                         data: dailySalaries,
-                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        backgroundColor: chartType === 'bar' ? 'rgba(52, 152, 219, 0.5)' : 'rgba(52, 152, 219, 0.1)',
                         borderColor: '#3498db',
-                        borderWidth: 3,
+                        borderWidth: chartType === 'bar' ? 1 : 3,
                         pointBackgroundColor: '#3498db',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
                         pointHoverBorderColor: '#3498db',
                         tension: 0.3,
-                        fill: true
+                        fill: chartType === 'line'
                     }]
                 },
                 options: {
@@ -1856,7 +1887,8 @@
             });
             
             // 点击月份显示年月选择器
-            currentMonthEl.addEventListener('click', () => {
+            currentMonthEl.addEventListener('click', (e) => {
+                e.stopPropagation(); // 阻止事件冒泡
                 showYearMonthPicker();
             });
             
@@ -1887,6 +1919,16 @@
                     renderSalaryChart(); // 自动刷新图表
                     hideYearMonthPicker();
                 }
+            });
+            
+            // 图表类型切换
+            chartTypeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    chartTypeBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    chartType = btn.dataset.type;
+                    renderSalaryChart();
+                });
             });
         }
         
