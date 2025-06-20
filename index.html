@@ -751,6 +751,7 @@
             box-shadow: 0 1px 3px rgba(41,128,185,0.3);
         }
         
+        /* 优化编辑表单样式 - 纵向布局 */
         .template-edit-form {
             margin-top: 10px;
             padding-top: 10px;
@@ -758,39 +759,86 @@
             display: none;
         }
         .template-edit-form .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
         .template-edit-form .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 10px;
-            align-items: end;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
         .template-edit-form input {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            padding: 10px 12px;
+            border: 1px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 0.95rem;
             box-shadow: 0 3px 8px rgba(0,0,0,0.05);
             border-bottom: 2px solid #d0d9e0;
+            transition: all 0.3s;
+            width: 100%;
         }
+        .template-edit-form input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+            outline: none;
+        }
+        
+        /* 优化按钮样式 */
         .template-edit-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 12px;
+            margin-top: 15px;
         }
         .save-edit-btn {
-            background-color: #2ecc71;
+            background: linear-gradient(to bottom, #2ecc71, #27ae60);
             color: white;
-            box-shadow: 0 3px 8px rgba(46,204,113,0.3);
-            border-bottom: 2px solid #27ae60 !important;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(46,204,113,0.3);
+            border-bottom: 3px solid #219653;
+            transition: all 0.2s;
+            font-size: 0.9rem;
         }
+        .save-edit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(46,204,113,0.4);
+        }
+        .save-edit-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 5px rgba(39,174,96,0.3);
+        }
+        
         .cancel-edit-btn {
-            background-color: #95a5a6;
+            background: linear-gradient(to bottom, #95a5a6, #7f8c8d);
             color: white;
-            box-shadow: 0 3px 8px rgba(149,165,166,0.3);
-            border-bottom: 2px solid #7f8c8d !important;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(149,165,166,0.3);
+            border-bottom: 3px solid #6c7a89;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .cancel-edit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(149,165,166,0.4);
+        }
+        .cancel-edit-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 5px rgba(127,140,141,0.3);
         }
         
         .year-month-selector {
@@ -1002,6 +1050,16 @@
             }
             .chart-container {
                 height: 450px;
+            }
+            
+            /* 桌面端编辑表单优化 */
+            .template-edit-form .form-row {
+                flex-direction: row;
+                gap: 15px;
+            }
+            .template-edit-form .form-group {
+                flex: 1;
+                margin-bottom: 0;
             }
         }
     </style>
