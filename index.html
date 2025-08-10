@@ -1023,6 +1023,70 @@
             border-color: #3498db;
         }
         
+        /* 维护提示弹窗样式 */
+        .maintenance-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 3000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .maintenance-content {
+            background-color: white;
+            border-radius: 16px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            text-align: center;
+            border: 2px solid #e74c3c;
+        }
+        
+        .maintenance-icon {
+            color: #e74c3c;
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .maintenance-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+        
+        .maintenance-message {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .maintenance-btn {
+            padding: 12px 25px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            box-shadow: 0 5px 15px rgba(231,76,60,0.3);
+            border-bottom: 3px solid #c0392b;
+        }
+        
+        .maintenance-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 5px rgba(192,57,43,0.3);
+        }
+        
         @media (min-width: 768px) {
             body {
                 padding: 15px;
@@ -1088,6 +1152,21 @@
     </style>
 </head>
 <body>
+    <!-- 维护提示弹窗 -->
+    <div class="maintenance-modal" id="maintenance-modal">
+        <div class="maintenance-content">
+            <div class="maintenance-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="maintenance-title">系统维护通知</div>
+            <div class="maintenance-message">
+                系统即将进行维护升级，为避免数据丢失，请及时备份您的计件数据。<br>
+                维护期间可能会影响系统正常使用，请提前做好准备。
+            </div>
+            <button class="maintenance-btn" id="maintenance-btn">我知道了</button>
+        </div>
+    </div>
+    
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-industry"></i> 工厂计件管理系统</h1>
@@ -1361,15 +1440,30 @@
         const salaryChartCanvas = document.getElementById('salary-chart');
         const noDataMessage = document.getElementById('no-data-message');
         const chartTypeBtns = document.querySelectorAll('.chart-type-btn');
+        const maintenanceModal = document.getElementById('maintenance-modal');
+        const maintenanceBtn = document.getElementById('maintenance-btn');
         
         // 初始化
         function init() {
+            // 显示维护提示
+            showMaintenanceNotice();
+            
             renderCalendar();
             renderProcessTemplates();
             renderTemplateSelect();
             updateStats();
             setupEventListeners();
             renderSalaryChart();
+        }
+        
+        // 显示维护提示
+        function showMaintenanceNotice() {
+            maintenanceModal.style.display = 'flex';
+        }
+        
+        // 隐藏维护提示
+        function hideMaintenanceNotice() {
+            maintenanceModal.style.display = 'none';
         }
         
         // 渲染日历
@@ -1507,6 +1601,8 @@
             processTemplates.forEach((template, index) => {
                 const templateEl = document.createElement('div');
                 templateEl.className = 'template-card';
+                
+                const itemTotal = parseFloat(process.price) * parseInt(process.quantity);
                 
                 templateEl.innerHTML = `
                     <div class="template-header">
@@ -1769,6 +1865,9 @@
         
         // 设置事件监听
         function setupEventListeners() {
+            // 维护提示确认按钮
+            maintenanceBtn.addEventListener('click', hideMaintenanceNotice);
+            
             // 标签页切换
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
