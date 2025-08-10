@@ -1459,11 +1459,13 @@
         // 显示维护提示
         function showMaintenanceNotice() {
             maintenanceModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // 禁止滚动
         }
         
         // 隐藏维护提示
         function hideMaintenanceNotice() {
             maintenanceModal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // 恢复滚动
         }
         
         // 渲染日历
@@ -1601,8 +1603,6 @@
             processTemplates.forEach((template, index) => {
                 const templateEl = document.createElement('div');
                 templateEl.className = 'template-card';
-                
-                const itemTotal = parseFloat(process.price) * parseInt(process.quantity);
                 
                 templateEl.innerHTML = `
                     <div class="template-header">
